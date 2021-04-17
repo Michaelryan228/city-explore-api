@@ -1,5 +1,6 @@
 'use strict';
 
+const superagent = require('superagent');
 const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
@@ -12,12 +13,18 @@ app.use(cors());
 const PORT = process.env.PORT || 3001;
 
 app.get('/weather', (request, response) => {
-  try {
-    const dailyForecast = weatherData.data.map(day => new DailyForecast(day));
-    response.send(dailyForecast);
-  } catch (error) {
-    handleErrors(error, response);
-  }
+  superagent.get('https://api.weatherbit.io/v2.0/forecast/daily')
+    .query({
+      key: process.env.WEATHER_API_KEY,
+      units: 'I',
+      lat: request.query.lat,
+      lon: request.query.long
+    })
+    .then(weatherData => {
+      response.json(weatherData.body.data.map(x => (
+        {date: x.valid_date,
+          description: x.weather.description})));
+    });
 });
 
 function DailyForecast(day) {
