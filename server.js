@@ -5,7 +5,7 @@ const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
 
-const weatherData = require('./data/weather.json')
+// const weatherData = require('./data/weather.json');
 
 const app = express();
 app.use(cors());
@@ -18,13 +18,12 @@ app.get('/weather', (request, response) => {
       key: process.env.WEATHER_API_KEY,
       units: 'I',
       lat: request.query.lat,
-      lon: request.query.long
+      lon: request.query.lon
     })
     .then(weatherData => {
-      response.json(weatherData.body.data.map(x => (
-        {date: x.valid_date,
-          description: x.weather.description})));
-    });
+      response.json(weatherData.body.data.map(day => new DailyForecast(day)));
+    })
+    .catch(error => handleErrors(error, response));
 });
 
 function DailyForecast(day) {
